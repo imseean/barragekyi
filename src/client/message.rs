@@ -1,6 +1,5 @@
 use serde_json;
 use std::mem::transmute;
-use serde_json::{Error, Value};
 
 pub trait Message {
     fn to_bytes(&self) -> Vec<u8>;
@@ -85,79 +84,5 @@ impl Message for BeatMessage {
         }
         print!("]\r\n");
         return data;
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct BarrageData {
-    #[serde(rename = "cmd")] pub command: String,
-}
-
-impl BarrageData {
-    pub fn is_message_barrage(content: &str) -> bool {
-        let data: BarrageData = serde_json::from_str(&content).unwrap();
-        return data.command == "DANMU_MSG";
-    }
-
-    pub fn is_gift_barrage(content: &str) -> bool {
-        let data: BarrageData = serde_json::from_str(&content).unwrap();
-        return data.command == "SEND_GIFT";
-    }
-}
-
-pub struct MessageBarrageData {
-    pub user: String,
-    pub text: String,
-}
-
-impl MessageBarrageData {
-    pub fn from_str(content: &str) -> MessageBarrageData {
-        let data: Value = serde_json::from_str(&content).unwrap();
-        let info = &data.as_object().unwrap()["info"];
-        let text = &info.as_array().unwrap()[1].as_str().unwrap();
-        let user = &info.as_array().unwrap()[2].as_array().unwrap()[1]
-            .as_str()
-            .unwrap();
-
-        println!("{}:{}", user, text);
-
-        return MessageBarrageData {
-            user: user.to_string(),
-            text: text.to_string(),
-        };
-    }
-}
-
-pub struct GiftBarrageData {
-    pub user: String,
-    pub number: u64,
-    pub gift_name: String,
-}
-
-impl GiftBarrageData {
-    pub fn from_str(content: &str) -> GiftBarrageData {
-        let data: Value = serde_json::from_str(&content).unwrap();
-        //println!("{:?}", data.as_object().unwrap()["data"]);
-        let gift_name = data.as_object().unwrap()["data"].as_object().unwrap()["giftName"]
-            .as_str()
-            .unwrap();
-        let number = data.as_object().unwrap()["data"].as_object().unwrap()["num"]
-            .as_u64()
-            .unwrap();
-        let user = data.as_object().unwrap()["data"].as_object().unwrap()["uname"]
-            .as_str()
-            .unwrap();
-
-        println!("{}:{}x{}", user, gift_name, number);
-        return GiftBarrageData {
-            user: user.to_string(),
-            gift_name: gift_name.to_string(),
-            number: number,
-        };
-        // return GiftBarrageData {
-        //     user: "user".to_string(),
-        //     gift_name: "gift_name".to_string(),
-        //     number: 0,
-        // };
     }
 }
